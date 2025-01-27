@@ -30,7 +30,7 @@ Este é o CRUD para o teste técnico da Onfly construído com PHP, Laravel, MySQ
 
 ```bash
 git@github.com:nykolasfornaziero/onfly-api.git
-cd onfly_teste
+cd onfly-api
 ```
 Caso queira utilizar o projeto localmente na máquina precisará seguir os passos abaixo:
 1. Instale as dependências:
