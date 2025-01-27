@@ -32,7 +32,7 @@ class UserSeeder extends Seeder
 
         foreach ($users as $user) {
             $user = User::create($user);
-            if ($user->email == 'admin@onfly.com') {
+            if ($user->email = 'admin@onfly.com') {
                 $user->assignRole('admin');
             } else {
                 $user->assignRole('colaborator');

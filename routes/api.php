@@ -10,9 +10,9 @@ Route::get('teste', [TravelDestinationController::class, 'test']);
 
 
 Route::prefix('destination')->group(function () {
-    Route::post('/store', [TravelDestinationController::class, 'store'])->middleware(['auth:api', 'role_permission:admin,colaborator']);
+    Route::post('/store', [TravelDestinationController::class, 'store'])->middleware(['auth:api', 'role_permission:admin,colaborator'])->name('travel-destinations.store');;
     Route::get('/list', [TravelDestinationController::class, 'index'])->middleware(['auth:api', 'role_permission:admin,colaborator']);;
     Route::get('/checkStatus/{id}', [TravelDestinationController::class, 'checkStatus'])->middleware(['auth:api', 'role_permission:admin,colaborator']);;
-    Route::put('/updateStatus/{id}', [TravelDestinationController::class, 'updateStatus'])->middleware(['auth:api', 'role_permission:admin']);
-    Route::put('/update/{id}', [TravelDestinationController::class, 'update'])->middleware('auth:api')->middleware(['auth:api', 'role_permission:admin,colaborator']);
+    Route::patch('/updateStatus/{id}', [TravelDestinationController::class, 'updateStatus'])->middleware(['auth:api', 'role_permission:admin']);
+    Route::patch('/update/{id}', [TravelDestinationController::class, 'update'])->middleware('auth:api')->middleware(['auth:api', 'role_permission:admin,colaborator']);
 });

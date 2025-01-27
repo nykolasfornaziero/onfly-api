@@ -18,9 +18,10 @@ class TravelDestinationController extends Controller
     public function index(Request $request)
     {
         $rules = [
-            'destination' => 'nullable|string|max:255',
-            'start_date' => 'nullable|date|date_format:Y-m-d',
-            'end_date' => 'nullable|date|date_format:Y-m-d|after_or_equal:start_date',
+            'destination' => 'sometimes|string|max:255',
+            'start_date' => 'sometimes|date|date_format:Y-m-d',
+            'end_date' => 'sometimes|date|date_format:Y-m-d|after_or_equal:start_date',
+            'status' => 'sometimes|in:solicitado,aprovado,cancelado',
         ];
 
         $messages = [
@@ -30,6 +31,7 @@ class TravelDestinationController extends Controller
             'end_date.date' => 'A data de retorno deve ser uma data válida.',
             'end_date.date_format' => 'A data de retorno deve estar no formato YYYY-MM-DD.',
             'end_date.after_or_equal' => 'A data de retorno não pode ser anterior à data de partida.',
+            'status.in' => 'O status deve ser um dos seguintes valores: solicitado, aprovado ou cancelado.',
         ];
 
         $validator = Validator::make($request->all(), $rules, $messages);
@@ -52,6 +54,9 @@ class TravelDestinationController extends Controller
             if ($request->has('end_date')) {
                 $query->where('return_date', '<=', $request->end_date);
             }
+            if ($request->has('status')) {
+                $query->where('status', '=', $request->status);
+            }
 
             if(!auth()->user()->hasAnyRole('admin') && !auth()->user()->hasAnyPermission('admin')){
                 $query->where('user_id', auth()->user()->id);
@@ -62,6 +67,11 @@ class TravelDestinationController extends Controller
             }
 
             $travelDestinations = $query->with('user')->get();
+
+            if ($travelDestinations->isEmpty()) {
+                return response()->noContent();
+            }
+
             return TravelDestinationResource::collection($travelDestinations);
 
         }catch (\Exception $e) {
@@ -171,7 +181,7 @@ class TravelDestinationController extends Controller
         if(!auth()->user()->hasAnyRole('admin') && !auth()->user()->hasAnyPermission('admin')){
              if(!$travelDestination->user_id==auth()->user()->id)
              {
-                 return response()->json(['error' => 'Não é possível alterar uma solicitação de outro usuário','messages' => $validator->errors(),], 401);
+                 return response()->json(['error' => 'Não é possível alterar uma solicitação de outro usuário','messages' => $validator->errors(),], 403);
              }
             $travelDestination->update($validator->validated());
         }else{
@@ -236,16 +246,10 @@ class TravelDestinationController extends Controller
 
         $destination = TravelDestination::findOrFail($id);
         try{
-            switch ($destination->status){
-                case 'aprovado':
-                    $msg='Destino consta como aprovado.';
-                    break;
-                case 'solicitado':
-                    $msg='Destino está como solicitado.';
-                    break;
-                case 'cancelado':
-                    $msg='Destino consta como cancelado.';
-                    break;
+            if(!auth()->user()->hasAnyRole('admin') && !auth()->user()->hasAnyPermission('admin')){
+                if ($destination->user_id == auth()->user()->id) {
+                    return response()->json(['message' => 'Você só pode visualizar pedidos de viagens solicitados por você.'], 403);
+                }
             }
         }
         catch (\Exception $e) {
@@ -257,17 +261,11 @@ class TravelDestinationController extends Controller
                 'message' => 'Ocorreu um erro ao processar sua solicitação. Por favor, tente novamente mais tarde.',
             ], 500);
         }
-        return response()->json(['message' => $msg,'status'=>$destination->status],200);
+        return response(new TravelDestinationResource($destination), 200);
     }
 
     public function test(){
-        $user=User::findOrFail(1);
-        $travelInfo['departure_date']='123123';
-        $travelInfo['return_date']='122222';
-        $travelInfo['status']='aprovado';
-        $travelInfo['destination']='Aguas da Prata';
-
-
+        return response()->noContent(200);
     }
 
 }
